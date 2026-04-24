@@ -6,7 +6,7 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-APP_URL = "https://medical-interview-ai-simulator.streamlit.app"
+APP_URL = "https://patient-clinician-ai-simulator-for-doctor.streamlit.app"
 
 
 # =========================
