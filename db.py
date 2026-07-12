@@ -20,8 +20,9 @@ def get_supabase() -> Client:
 
     except Exception as e:
         logger.error(f"get_supabase error: {e}")
-        st.error(f"Supabase接続エラー: {e}")
-        return None
+        # 詳細（URL等）を画面に出さないよう、例外メッセージは表示しない
+        st.error("データベースへの接続に失敗しました。管理者にお問い合わせください。")
+        st.stop()
 
 
 supabase: Client = get_supabase()
@@ -31,14 +32,17 @@ supabase: Client = get_supabase()
 # 現在のログインユーザー取得
 # =========================
 def get_current_user():
-
+    # st.session_state に保存したトークンで検証する。
+    # @st.cache_resource のシングルトンクライアントに依存しないことで
+    # 複数ユーザー・複数デバイス間のセッション混入を防ぐ。
+    access_token = st.session_state.get("access_token")
+    if not access_token:
+        return None
     try:
-        res = supabase.auth.get_user()
-
+        res = supabase.auth.get_user(access_token)
         if res and res.user:
             return res.user
         return None
-
     except Exception as e:
         logger.error(f"get_current_user error: {e}")
         return None
@@ -49,11 +53,14 @@ def get_current_user():
 # =========================
 def logout():
 
-    try:
-        supabase.auth.sign_out()
-    except Exception as e:
-        logger.error(f"logout error: {e}")
+    access_token = st.session_state.get("access_token")
+    if access_token:
+        try:
+            supabase.auth.sign_out()
+        except Exception as e:
+            logger.error(f"logout error: {e}")
 
+    # Streamlit側セッションをクリア（access_token も消えるので次回は未認証）
     for key in list(st.session_state.keys()):
         del st.session_state[key]
 

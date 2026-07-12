@@ -212,12 +212,12 @@ def render_chat_page(
             raw_eval = eval_session.send_message(eval_prompt).text
 
             start = raw_eval.find("{")
-            end = raw_eval.rfind("}") + 1
+            end = raw_eval.rfind("}")
 
-            if start == -1 or end == -1:
+            if start == -1 or end == -1 or end < start:
                 raise ValueError("JSONが見つかりません")
 
-            json_text = raw_eval[start:end]
+            json_text = raw_eval[start:end + 1]
             evaluation_json = json.loads(json_text)
 
             st.session_state["last_evaluation_json"] = evaluation_json
